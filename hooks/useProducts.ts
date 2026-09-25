@@ -62,21 +62,57 @@ export function useProducts(state: ProductListState): UseProductsResult {
     setIsLoading(true);
     setError(null);
 
-    const skip = (state.page - 1) * state.limit;
-
-    productApi
-      .getProducts({
+    const fillCurrentPage = async (): Promise<{ products: Product[]; total: number }> => {
+      const skip = (state.page - 1) * state.limit;
+      const firstResponse = await productApi.getProducts({
         limit: state.limit,
         skip,
         search: state.search,
         category: state.category,
         signal: controller.signal,
-      })
-      .then((response) => {
+      });
+
+      if (thisRequestId !== requestIdRef.current) return { products: [], total: 0 };
+
+      const firstOverlaid = applyOverlay(firstResponse, state.page);
+      const visibleProducts = [...firstOverlaid.products];
+      const seenIds = new Set(visibleProducts.map((product) => product.id));
+      let nextSkip = skip + state.limit;
+      let nextPage = state.page + 1;
+
+      while (visibleProducts.length < state.limit && nextSkip < (firstOverlaid.total ?? 0) + state.limit) {
+        const nextResponse = await productApi.getProducts({
+          limit: state.limit,
+          skip: nextSkip,
+          search: state.search,
+          category: state.category,
+          signal: controller.signal,
+        });
+
+        if (thisRequestId !== requestIdRef.current) return { products: [], total: 0 };
+
+        const nextOverlaid = applyOverlay(nextResponse, nextPage);
+
+        for (const product of nextOverlaid.products) {
+          if (seenIds.has(product.id)) continue;
+          visibleProducts.push(product);
+          seenIds.add(product.id);
+          if (visibleProducts.length >= state.limit) break;
+        }
+
+        if (nextOverlaid.products.length === 0) break;
+        nextSkip += state.limit;
+        nextPage += 1;
+      }
+
+      return { products: visibleProducts, total: firstOverlaid.total };
+    };
+
+    fillCurrentPage()
+      .then((result) => {
         if (thisRequestId !== requestIdRef.current) return; // stale, ignore
-        const overlaid = applyOverlay(response, state.page);
-        setProducts(sortProducts(overlaid.products, state.sort));
-        setTotal(overlaid.total);
+        setProducts(sortProducts(result.products, state.sort));
+        setTotal(result.total);
         setIsLoading(false);
       })
       .catch((err: ApiError) => {

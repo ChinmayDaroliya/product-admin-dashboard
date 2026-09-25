@@ -24,6 +24,7 @@ interface ProductStoreValue {
   recordEdit: (id: number, patch: Partial<Product>) => void;
   recordDelete: (id: number) => void;
   getEditedOrAdded: (id: number) => Product | undefined;
+  isLocalOnlyProduct: (id: number) => boolean;
 }
 
 const ProductStoreContext = createContext<ProductStoreValue | undefined>(undefined);
@@ -110,6 +111,11 @@ export function ProductStoreProvider({ children }: { children: React.ReactNode }
     [overlay, mergeEdit]
   );
 
+  const isLocalOnlyProduct = useCallback(
+    (id: number): boolean => overlay.added.some((product) => product.id === id),
+    [overlay]
+  );
+
   const applyOverlay = useCallback(
     (response: ProductListResponse, page: number): ProductListResponse => {
       const deletedSet = new Set(overlay.deleted);
@@ -117,10 +123,11 @@ export function ProductStoreProvider({ children }: { children: React.ReactNode }
         .filter((p) => !deletedSet.has(p.id))
         .map(mergeEdit);
 
-      // We can't know which page a deleted item originally lived on, so we
-      // conservatively subtract every recorded deletion from the server's
-      // total exactly once. Documented as an approximation in README.
-      let total = Math.max(0, response.total - overlay.deleted.length);
+      // Local deletions are session-only and should not shrink the underlying
+      // catalog total. Doing so causes page counts to collapse even though the
+      // backend never mutated this item. We still filter the deleted ids out of
+      // the current page so the user doesn't see removed products.
+      let total = response.total;
 
       // Locally-added products are session-only fabrications, so we only
       // surface them on page 1 of the unfiltered/default view - injecting
@@ -143,8 +150,9 @@ export function ProductStoreProvider({ children }: { children: React.ReactNode }
       recordEdit,
       recordDelete,
       getEditedOrAdded,
+      isLocalOnlyProduct,
     }),
-    [applyOverlay, applyOverlayToOne, recordAdd, recordEdit, recordDelete, getEditedOrAdded]
+    [applyOverlay, applyOverlayToOne, recordAdd, recordEdit, recordDelete, getEditedOrAdded, isLocalOnlyProduct]
   );
 
   return (

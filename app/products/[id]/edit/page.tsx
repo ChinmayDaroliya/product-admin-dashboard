@@ -77,10 +77,15 @@ export default function EditProductPage() {
         stock: Number(data.stock),
         thumbnail: data.thumbnail || product.thumbnail,
       };
-      // The API call is made for realism/explainability (and to surface
-      // real network errors), but per the CRUD limitation, the change is
-      // actually what gets shown to the user via recordEdit below.
-      await productApi.updateProduct(product.id, patch);
+
+      const isLocalOnlyProduct = Boolean(getEditedOrAdded(product.id));
+
+      // DummyJSON never persists locally created IDs, so a session-only product
+      // should only update the overlay and not call the real PUT endpoint.
+      if (!isLocalOnlyProduct) {
+        await productApi.updateProduct(product.id, patch);
+      }
+
       recordEdit(product.id, patch);
       showToast('Product updated.', 'success');
       router.push(`/products/${product.id}`);

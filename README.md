@@ -142,9 +142,9 @@ DummyJSON's `add`/`edit`/`delete` endpoints are simulated: they respond as if th
 
 - **Add:** the new product is prepended to page 1 of the (unfiltered) list and is fully viewable/editable at its own detail/edit URLs for the rest of the session.
 - **Edit:** the patched fields are merged into whatever the API returns, everywhere that product appears.
-- **Delete:** the product is filtered out of every list response, and its total count is decremented.
+- **Delete:** the product is filtered out of every list response, but the underlying server-backed total is kept stable so page counts do not collapse during the session.
 
-This is a deliberate simplification, not a full client-side database: added products only appear on page 1 (injecting them into arbitrary pages would make the `skip`/`limit` math lie), and the total count after deletions is an approximation, since we don't know which page a deleted item "really" belonged to. Documented here rather than pretending the data is truly persisted.
+This is a deliberate simplification, not a full client-side database: added products only appear on page 1 (injecting them into arbitrary pages would make the `skip`/`limit` math lie), and local deletes are tracked only to hide items from the visible list without pretending the remote catalog has changed. Documented here rather than pretending the data is truly persisted.
 
 ## Race Condition Handling
 

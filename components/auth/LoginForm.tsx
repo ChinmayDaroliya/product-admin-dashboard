@@ -18,8 +18,12 @@ export function LoginForm() {
 
   function validate(): boolean {
     const errors: FieldErrors = {};
-    if (!username.trim()) errors.username = 'Username is required.';
-    if (!password) errors.password = 'Password is required.';
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedUsername) errors.username = 'Username is required.';
+    if (!trimmedPassword) errors.password = 'Password is required.';
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -30,8 +34,12 @@ export function LoginForm() {
     // a form submission triggered by pressing Enter multiple times fast.
     if (isLoggingIn) return;
     if (!validate()) return;
+
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
     try {
-      await login(username, password);
+      await login(trimmedUsername, trimmedPassword);
     } catch {
       // loginError from context already surfaces the message; nothing else to do.
     }
@@ -44,7 +52,7 @@ export function LoginForm() {
         name="username"
         autoComplete="username"
         value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        onChange={(e) => setUsername(e.target.value.trimStart())}
         error={fieldErrors.username}
         placeholder="emilys"
         disabled={isLoggingIn}
@@ -55,7 +63,7 @@ export function LoginForm() {
         type="password"
         autoComplete="current-password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value.trimStart())}
         error={fieldErrors.password}
         placeholder="••••••••"
         disabled={isLoggingIn}

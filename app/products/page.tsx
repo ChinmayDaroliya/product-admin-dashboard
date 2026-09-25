@@ -33,7 +33,7 @@ export default function ProductsPage() {
 function ProductsPageContent() {
   const { state, update } = useProductListState();
   const { products, total, isLoading, error, retry } = useProducts(state);
-  const { recordDelete } = useProductStore();
+  const { recordDelete, isLocalOnlyProduct } = useProductStore();
   const { showToast } = useToast();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -57,7 +57,10 @@ function ProductsPageContent() {
     if (!deleteTarget || isDeleting) return;
     setIsDeleting(true);
     try {
-      await productApi.deleteProduct(deleteTarget.id);
+      if (!isLocalOnlyProduct(deleteTarget.id)) {
+        await productApi.deleteProduct(deleteTarget.id);
+      }
+
       recordDelete(deleteTarget.id);
       showToast(`"${deleteTarget.title}" was deleted.`, 'success');
       setDeleteTarget(null);
