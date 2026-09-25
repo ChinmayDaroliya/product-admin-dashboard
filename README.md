@@ -175,9 +175,6 @@ Login, Add/Edit save, and Delete all guard against rapid repeated clicks two way
 **Problem:** DummyJSON's `/products/add` always returns a new product with `id: 101`, no matter how many times you call it or how many products already exist. Using that id directly would mean every locally-added product in a session collided on the same id, and could also collide with a real product id already in the catalog (breaking links to `/products/101`).
 **Solution:** after receiving the response, the id is replaced client-side with `Date.now()` before it's stored in the overlay, guaranteeing a unique, sufficiently "obviously local" id for the rest of the session.
 
-## AI Usage
-
-This project was built with AI assistance (Claude). AI was used to scaffold the project structure, write the majority of the component/hook/API code, and draft this README from the implemented behavior. The prompt's required decisions (search-vs-category priority, CRUD persistence strategy, race-condition approach, invalid-URL normalization) were made deliberately and are explained above rather than left as unexplained AI output - please ask about any part of this code in review; it was written to be walked through line by line, not just to pass a checklist.
 
 ## Requirement Audit
 
