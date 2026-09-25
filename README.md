@@ -27,7 +27,7 @@ Log in, browse a paginated product catalog with search/filter/sort, view product
 
 Next.js 14 (App Router) · React 18 · TypeScript · Tailwind CSS · Axios
 
-No React Query/SWR and no table/pagination libraries, per the assignment's constraints - all data-fetching and pagination logic is hand-written.
+No React Query/SWR or table/pagination libraries are used; data-fetching and pagination logic is implemented directly in the application.
 
 ## Project Structure
 
@@ -99,7 +99,7 @@ Open `http://localhost:3000`. Log in with:
 
 ## API
 
-All requests go through [DummyJSON](https://dummyjson.com), a free fake REST API. Endpoints used: `POST /auth/login`, `GET /products`, `GET /products/search`, `GET /products/category/:slug`, `GET /products/categories`, `GET /products/:id`, `POST /products/add`, `PUT /products/:id`, `DELETE /products/:id`.
+The application uses [DummyJSON](https://dummyjson.com), a free REST API for product and authentication data. Endpoints used: `POST /auth/login`, `GET /products`, `GET /products/search`, `GET /products/category/:slug`, `GET /products/categories`, `GET /products/:id`, `POST /products/add`, `PUT /products/:id`, `DELETE /products/:id`.
 
 ## Authentication
 
@@ -176,9 +176,10 @@ Login, Add/Edit save, and Delete all guard against rapid repeated clicks two way
 **Solution:** after receiving the response, the id is replaced client-side with `Date.now()` before it's stored in the overlay, guaranteeing a unique, sufficiently "obviously local" id for the rest of the session.
 
 
-## Requirement Audit
+## Implementation Notes
 
-Everything in the assignment brief is implemented as described above. Two intentionally-scoped simplifications, both documented above rather than hidden:
+Two intentionally scoped implementation details are documented here:
 
-- Sorting is applied client-side to the current page's results (not the full catalog), because DummyJSON doesn't support `sortBy`/`order` consistently across the `/products/search` and `/products/category/:slug` endpoints used here. A fully global sort would require fetching the entire catalog client-side, which defeats the purpose of server-side pagination.
-- Product statistics on the dashboard (low stock, avg. rating, etc.) are computed from the current page only, and are labeled as such in the UI - a true catalog-wide statistic isn't available without fetching everything.
+- **Sorting:** Sorting is applied client-side to the current page's results (not the full catalog), because DummyJSON doesn't support `sortBy`/`order` consistently across the `/products/search` and `/products/category/:slug` endpoints used here. A fully global sort would require fetching the entire catalog client-side, which defeats the purpose of server-side pagination.
+
+- **Product statistics:** Product statistics on the dashboard (low stock, average rating, etc.) are computed from the current page only and are labeled as such in the UI rather than being presented as catalog-wide statistics.
